@@ -20,13 +20,12 @@ class Gmm:
             self.image_output.append(image)
         for image in train_label:
             self.image_label.append(image)
-        
-        self.image_output = self.image_output[-512:]
-        self.image_label = self.image_label[-512:]
     
     def new_epoch(self):
         self.recoder_pos.append([])
         self.recoder_neg.append([])
+        self.image_output = []
+        self.image_label = []
     
     def train(self):
         self.gmm_pos = GaussianMixture(n_components=2, max_iter=10, tol=1e-2, reg_covar=5e-4)
@@ -60,7 +59,7 @@ class Gmm:
         drop_th = self.disagree[int(drop_rate*len(self.disagree))]
         
         return drop_th
-    
+        
     def eval(self, model_output, train_label, drop_rate):
         model_output = model_output.cpu()
         train_label = train_label.cpu()
@@ -68,6 +67,8 @@ class Gmm:
         drop_th = self.disagree[int(drop_rate*len(self.disagree))]
         
         drop = []
+        pseudo = []
+        weight = []
         
         for k in range(model_output.shape[0]):
             mask_pos = (train_label[k]>0.0).view(-1)
@@ -78,10 +79,13 @@ class Gmm:
             prob_neg = self.gmm_neg.predict_proba(model_output[k].view(-1,1))
             prob_neg = torch.tensor(prob_neg[:, self.gmm_neg.means_.argmax()]).view(-1)
             
-            prob = torch.where(mask_pos, prob_pos, prob_neg)
+            prob = torch.where(mask_pos, prob_pos, prob_neg).view(train_label[k].shape)
+            
+            pseudo.append(torch.where((prob>0.5), 1.0-train_label[k], train_label[k]))
+            weight.append((prob-0.5).pow(4.0))
             drop.append(prob.pow(2.0).sum().item() >= drop_th)
         
-        return torch.tensor(drop)
+        return torch.tensor(drop), torch.stack(pseudo, dim=0), torch.stack(weight, dim=0)
     
         
         

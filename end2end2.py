@@ -101,6 +101,7 @@ class End2End2:
         seg_correct = 0
         cheat = 0
         drop_pos = 0
+        drop_all = 0
 
         optimizer.zero_grad()
 
@@ -123,24 +124,21 @@ class End2End2:
                 gmm.add_output(output_seg_mask, train_masks_, epoch)
                 
             if not warmup:
-                drop = gmm.eval(output_seg_mask, train_masks_, self.cfg.DROP_RATE)
+                drop, pseudo, pseudo_weight = gmm.eval(output_seg_mask, train_masks_, self.cfg.DROP_RATE)
                 drop_pos += ((is_pos_>0.0).cpu().view(-1)*drop).sum().item()
-            
-                if drop.all():
-                    continue
-                else:
-                    images_ = images_[drop.logical_not()]
-                    seg_masks_ = seg_masks_[drop.logical_not()]
-                    train_masks_ = train_masks_[drop.logical_not()]
-                    seg_loss_masks_ = seg_loss_masks_[drop.logical_not()]
-                    is_pos_ = is_pos_[drop.logical_not()]
+                drop_all += drop.sum().item()
+                pseudo = pseudo.to(device)
+                pseudo_weight = pseudo_weight.to(device)
+                drop = drop.to(device)
+                
+                train_masks_ = torch.where(drop.view(-1,1,1,1), pseudo, train_masks_)
+                seg_loss_masks_ = torch.where(drop.view(-1,1,1,1), pseudo_weight, seg_loss_masks_)
                     
             decision, output_seg_mask = model_1(images_, seg_masks_)
             
             cheat += (seg_masks_ != train_masks_).long().max()
             
             if self.cfg.WEIGHTED_SEG_LOSS:
-                #seg_loss_masks_ = (train_masks_>0.0).float()*10.0+1.0
                 ad = (train_masks_>0.0).float()*self.cfg.AD
                 loss_seg = torch.mean(criterion_seg(output_seg_mask-ad, train_masks_) * seg_loss_masks_)
             else:
@@ -161,7 +159,7 @@ class End2End2:
         optimizer.step()
         optimizer.zero_grad()
 
-        return total_loss, total_correct, seg_correct, cheat, drop_pos
+        return total_loss, total_correct, seg_correct, cheat, drop_pos, drop_all
 
     def _train_model(self, device, model_1, model_2, train_loader, criterion_seg, optimizer1, optimizer2, validation_set, tensorboard_writer):
         losses = []
@@ -172,7 +170,6 @@ class End2End2:
         num_epochs = self.cfg.EPOCHS
         batch_per_epoch = len(train_loader)
         samples_per_epoch = len(train_loader) * self.cfg.BATCH_SIZE
-        model_counter = 0
         
         for epoch in range(num_epochs):
             self.gmm1.new_epoch()
@@ -189,45 +186,54 @@ class End2End2:
             epoch_seg_correct = 0
             epoch_cheat = 0
             epoch_drop_pos = 0
-            warmup = epoch < num_epochs//8
+            epoch_drop_all = 0
+            warmup = epoch < num_epochs//4
             
             from timeit import default_timer as timer
 
             time_acc = 0
             start = timer()
-            for iter_index, (data) in enumerate(train_loader):
-                start_1 = timer()
-                if model_counter:
-                    model_2.train()
-                    model_1.eval()
-                    result = self.training_iteration(
-                                                    data, device, model_2, model_1,
-                                                    criterion_seg,
-                                                    optimizer2,
-                                                    tensorboard_writer, 
-                                                    (epoch * samples_per_epoch + iter_index), epoch, self.gmm1, warmup)
-                else:
-                    model_1.train()
-                    model_2.eval()
-                    result = self.training_iteration(
-                                                    data, device, model_1, model_2,
-                                                    criterion_seg,
-                                                    optimizer1,
-                                                    tensorboard_writer, 
-                                                    (epoch * samples_per_epoch + iter_index), epoch, self.gmm2, warmup)
-                
-                                                
-                curr_loss, correct, seg_correct, cheat, drop_pos = result
-                end_1 = timer()
-                time_acc = time_acc + (end_1 - start_1)
-                
-                epoch_loss += curr_loss
-
-                epoch_correct += correct
-                epoch_seg_correct += seg_correct
-                epoch_cheat += cheat
-                epoch_drop_pos += drop_pos
-                model_counter = 1 - model_counter
+            for model_counter in range(2):
+                for iter_index, (data) in enumerate(train_loader):
+                    start_1 = timer()
+                    if model_counter:
+                        model_2.train()
+                        model_1.eval()
+                        result = self.training_iteration(
+                                                        data, device, model_2, model_1,
+                                                        criterion_seg,
+                                                        optimizer2,
+                                                        tensorboard_writer, 
+                                                        (epoch * samples_per_epoch + iter_index), epoch, self.gmm1, warmup)
+                    else:
+                        model_1.train()
+                        model_2.eval()
+                        result = self.training_iteration(
+                                                        data, device, model_1, model_2,
+                                                        criterion_seg,
+                                                        optimizer1,
+                                                        tensorboard_writer, 
+                                                        (epoch * samples_per_epoch + iter_index), epoch, self.gmm2, warmup)
+                    
+                                                    
+                    curr_loss, correct, seg_correct, cheat, drop_pos, drop_all = result
+                    end_1 = timer()
+                    time_acc = time_acc + (end_1 - start_1)
+                    
+                    epoch_loss += curr_loss
+    
+                    epoch_correct += correct
+                    epoch_seg_correct += seg_correct
+                    epoch_cheat += cheat
+                    epoch_drop_pos += drop_pos
+                    epoch_drop_all += drop_all
+            
+            epoch_loss = epoch_loss/2
+            epoch_correct = epoch_correct/2
+            epoch_seg_correct = epoch_seg_correct/2
+            epoch_cheat = epoch_cheat/2
+            epoch_drop_pos = epoch_drop_pos/2
+            epoch_drop_all = epoch_drop_all/2
             
             self.gmm1.train()
             self.gmm2.train()
@@ -240,7 +246,7 @@ class End2End2:
             losses.append((epoch_loss, epoch))
 
             self._log(
-                f"Epoch {epoch + 1}/{num_epochs} ==> avg_loss={epoch_loss:.5f}, correct={epoch_correct}/{samples_per_epoch}, seg_correct={epoch_seg_correct:.3f}, cheat={epoch_cheat:.0f}, drop_pos={epoch_drop_pos:.0f}, drop_th={drop_th1:.3f}/{drop_th2:.3f} in {end - start:.2f}s/epoch (fwd/bck in {time_acc:.2f}s/epoch)")
+                f"Epoch {epoch + 1}/{num_epochs} ==> avg_loss={epoch_loss:.5f}, correct={epoch_correct}/{samples_per_epoch}, seg_correct={epoch_seg_correct:.3f}, cheat={epoch_cheat:.0f}, drop_pos={epoch_drop_pos:.0f}/{epoch_drop_all:.0f}, drop_th={drop_th1:.3f}/{drop_th2:.3f} in {end - start:.2f}s/epoch (fwd/bck in {time_acc:.2f}s/epoch)")
 
             if tensorboard_writer is not None:
                 tensorboard_writer.add_scalar("Loss/Train/segmentation", epoch_loss_seg, epoch)
