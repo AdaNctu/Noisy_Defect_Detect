@@ -50,8 +50,8 @@ class KSDD2Dataset(Dataset):
         if self.cfg.NUM_NOISY is not None and self.cfg.NUM_NOISY > 0:
             num_noisy = len(pos_samples)*self.cfg.NUM_NOISY//100
             print(f'num_noisy={num_noisy}')
-            _, order_pos = torch.tensor([pos[1].sum().item() for pos in pos_samples]).sort()
-            offset = [i*(len(pos_samples)//3) for i in range(3)]#0 add, 1 big, 2 small
+            _, order_pos = torch.tensor([pos[1].sum().item() for pos in pos_samples]).sort(descending=True)
+            offset = [i*(len(pos_samples)//3) for i in range(3)]#2 add, 1 big, 0 small
             
             if self.cfg.NOISY_TYPE in [2, 3] and self.kind == 'TRAIN':
                 noisy_flag = True
