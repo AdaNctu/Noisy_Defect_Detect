@@ -59,7 +59,7 @@ class Gmm:
             #prob_neg = self.gmm_neg.predict_proba(self.image_output[k].view(-1,1))
             #prob_neg = torch.tensor(prob_neg[:, self.gmm_neg.means_.argmax()]).view(-1)
             prob_neg = self.CDF(neg_mean, neg_std, self.image_output[k].view(-1))
-            prob_neg = (prob_neg-0.5).clip(0.0,0.5)/0.5
+            prob_neg = (prob_neg-0.84).clip(0.0,0.16)/0.16
             
             prob = torch.where(mask_pos, prob_pos, prob_neg)
             self.disagree.append(prob.pow(4.0).sum().item())
@@ -92,12 +92,12 @@ class Gmm:
             #prob_neg = self.gmm_neg.predict_proba(model_output[k].view(-1,1))
             #prob_neg = torch.tensor(prob_neg[:, self.gmm_neg.means_.argmax()]).view(-1)
             prob_neg = self.CDF(neg_mean, neg_std, model_output[k].view(-1))
-            prob_neg = (prob_neg-0.5).clip(0.0,0.5)/0.5
+            prob_neg = (prob_neg-0.84).clip(0.0,0.16)/0.16
             
             prob = torch.where(mask_pos, prob_pos, prob_neg).view(train_label[k].shape)
             
             pseudo.append(torch.where((prob>0.5), 1.0-train_label[k], train_label[k]))
-            #weight.append((prob-0.5).pow(4.0))
+            #weight.append((2.0*prob-1.0).pow(4.0))
             weight.append(torch.zeros(prob.shape))
             drop.append(prob.pow(4.0).sum().item() >= drop_th)
         
