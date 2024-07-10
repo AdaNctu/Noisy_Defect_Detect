@@ -1,4 +1,5 @@
 from .input_ksdd2 import KSDD2Dataset
+from .input_dagm import DagmDataset
 from .input_pcb import PCBDataset
 from config import Config
 from torch.utils.data import DataLoader
@@ -12,6 +13,8 @@ def get_dataset(kind: str, cfg: Config) -> Optional[DataLoader]:
         kind = "TEST"
     if cfg.DATASET == "KSDD2":
         ds = KSDD2Dataset(kind, cfg)
+    elif cfg.DATASET == "DAGM":
+        ds = DagmDataset(kind, cfg)
     elif cfg.DATASET == "PCB":
         ds = PCBDataset(kind, cfg)
     else:

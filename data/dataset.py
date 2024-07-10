@@ -30,10 +30,10 @@ class Dataset(torch.utils.data.Dataset):
         self.neg_retrieval_freq = np.zeros(shape=self.num_neg)
 
     def __getitem__(self, index) -> (torch.Tensor, torch.Tensor, torch.Tensor, bool, str):
-
+        
         if self.counter >= self.len:
             self.counter = 0
-            if self.frequency_sampling and self.cfg.DATASET != "PCB":
+            if self.frequency_sampling and self.kind == 'TRAIN' and self.cfg.DATASET != "PCB" and self.cfg.DATASET != "KSDD2":
                 sample_probability = 1 - (self.neg_retrieval_freq / np.max(self.neg_retrieval_freq))
                 sample_probability = sample_probability - np.median(sample_probability) + 1
                 sample_probability = sample_probability ** (np.log(len(sample_probability)) * 4)
@@ -48,7 +48,7 @@ class Dataset(torch.utils.data.Dataset):
                 self.neg_imgs_permutation = np.random.permutation(self.num_neg)
 
 
-        if self.kind == 'TRAIN' and self.cfg.DATASET != "PCB":
+        if self.frequency_sampling:
             if index >= self.num_pos:
                 ix = index % self.num_pos
                 ix = self.neg_imgs_permutation[ix]
