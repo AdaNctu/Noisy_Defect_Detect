@@ -33,7 +33,7 @@ class Dataset(torch.utils.data.Dataset):
         
         if self.counter >= self.len:
             self.counter = 0
-            if self.frequency_sampling and self.kind == 'TRAIN' and self.cfg.DATASET != "PCB" and self.cfg.DATASET != "KSDD2":
+            if self.frequency_sampling and self.kind == 'TRAIN':
                 sample_probability = 1 - (self.neg_retrieval_freq / np.max(self.neg_retrieval_freq))
                 sample_probability = sample_probability - np.median(sample_probability) + 1
                 sample_probability = sample_probability ** (np.log(len(sample_probability)) * 4)
