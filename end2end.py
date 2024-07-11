@@ -54,14 +54,14 @@ class End2End:
             random.seed(1337)
             torch.backends.cudnn.deterministic = True
             torch.backends.cudnn.benchmark = False
-
+        
+        train_loader = get_dataset("TRAIN", self.cfg)
+        validation_loader = get_dataset("VAL", self.cfg)
+        
         device = self._get_device()
         model = self._get_model().to(device)
         optimizer = self._get_optimizer(model)
         loss_seg = self._get_loss(True)
-
-        train_loader = get_dataset("TRAIN", self.cfg)
-        validation_loader = get_dataset("VAL", self.cfg)
 
         tensorboard_writer = SummaryWriter(log_dir=self.tensorboard_path) if WRITE_TENSORBOARD else None
 
