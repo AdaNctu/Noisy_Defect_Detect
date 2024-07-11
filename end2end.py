@@ -266,7 +266,7 @@ class End2End:
 
             return AAUC, metrics["AP"], metrics["accuracy"]
         else:
-            utils.evaluate_metrics(res, self.run_path, self.run_name)
+            utils.evaluate_metrics(AAUC, res, self.run_path, self.run_name)
 
     def reload_model(self, model, load_final=False):
         if self.cfg.USE_BEST_MODEL:

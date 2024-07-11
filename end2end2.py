@@ -103,7 +103,7 @@ class End2End2:
             train_masks_ = train_masks[sub_iter * memory_fit:(sub_iter + 1) * memory_fit, :, :, :].to(device)
             seg_loss_masks_ = seg_loss_masks[sub_iter * memory_fit:(sub_iter + 1) * memory_fit, :, :, :].to(device)
             is_pos_ = is_pos[sub_iter * memory_fit:(sub_iter + 1) * memory_fit, :].to(device)
-        
+            
             with torch.no_grad():
                 decision, output_seg_mask = model(images_, seg_masks_)
                 gmm.add_output(output_seg_mask, seg_masks_)
@@ -208,6 +208,7 @@ class End2End2:
             warmup = epoch < num_epochs//4
             drop_rate = self.cfg.DROP_RATE*(epoch - num_epochs//4)/(num_epochs - num_epochs//4)
             drop_rate = max(drop_rate, 0.0)
+            print(len(train_loader))
             
             from timeit import default_timer as timer
 
@@ -355,7 +356,7 @@ class End2End2:
 
             return AAUC, metrics["AP"], metrics["accuracy"]
         else:
-            utils.evaluate_metrics(res, self.run_path, self.run_name)
+            utils.evaluate_metrics(AAUC, res, self.run_path, self.run_name)
 
     def reload_model(self, model_1, model_2, load_final=False):
         if self.cfg.USE_BEST_MODEL:
