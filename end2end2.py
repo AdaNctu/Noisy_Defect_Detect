@@ -322,6 +322,7 @@ class End2End2:
             pred_seg = pred_seg.detach().cpu().numpy()
             seg_mask = seg_mask.detach().cpu().numpy()
             human_mask = human_mask.detach().cpu().numpy()
+            original_image = original_image.numpy()
             diff.append((seg_mask!=human_mask).sum())
 
             predictions.append(prediction)
