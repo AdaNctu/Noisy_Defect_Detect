@@ -79,12 +79,17 @@ class Dataset(torch.utils.data.Dataset):
                 item = self.pos_samples[ix]
 
         image, seg_mask, seg_loss_mask, is_segmented, image_path, seg_mask_path, sample_name, train_mask, is_pos = item
+        original_image = image.clone()
+        
         if self.normalize is not None:
             image = self.normalize(image)
 
         self.counter = self.counter + 1
-
-        return image, seg_mask, seg_loss_mask, is_segmented, sample_name, is_pos, train_mask
+        
+        if self.kind != 'TRAIN':
+            return image, seg_mask, seg_loss_mask, is_segmented, sample_name, is_pos, train_mask, original_image
+        else:
+            return image, seg_mask, seg_loss_mask, is_segmented, sample_name, is_pos, train_mask
 
     def __len__(self):
         return self.len

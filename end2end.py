@@ -220,7 +220,7 @@ class End2End:
         diff = []
         
         for data_point in eval_loader:
-            image, human_mask, seg_loss_mask, _, sample_name, is_pos, seg_mask = data_point
+            image, human_mask, seg_loss_mask, _, sample_name, is_pos, seg_mask, original_image = data_point
             image, human_mask = image.to(device), human_mask.to(device)
             is_pos = is_pos.item()
             prediction, pred_seg = model(image, human_mask)
@@ -239,7 +239,7 @@ class End2End:
             res.append((prediction, None, None, is_pos, sample_name[0]))
             if not is_validation:
                 if save_images:
-                    image = cv2.resize(np.transpose(image[0, :, :, :], (1, 2, 0)), dsize)
+                    image = cv2.resize(np.transpose(original_image[0, :, :, :], (1, 2, 0)), dsize)
                     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
                     #pred_seg = cv2.resize(pred_seg[0, 0, :, :], dsize) if len(pred_seg.shape) == 4 else cv2.resize(pred_seg[0, :, :], dsize)
                     #seg_mask = cv2.resize(seg_mask[0, 0, :, :], dsize)
