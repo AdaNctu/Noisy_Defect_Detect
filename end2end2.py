@@ -80,13 +80,12 @@ class End2End2:
         self._save_train_results(train_results)
         self._save_model(model_1, model_2)
 
-        self.eval(model_1, model_2, device, self.cfg.SAVE_IMAGES, False, False)
+        self.eval(model_1, model_2, device, self.cfg.SAVE_IMAGES, False, False, validation_loader)
 
         self._save_params()
 
-    def eval(self, model_1, model_2, device, save_images, plot_seg, reload_final):
+    def eval(self, model_1, model_2, device, save_images, plot_seg, reload_final, test_loader):
         self.reload_model(model_1, model_2, reload_final)
-        test_loader = get_dataset("TEST", self.cfg)
         self.eval_model(device, model_1, model_2, test_loader, save_folder=self.outputs_path, save_images=save_images, is_validation=False, plot_seg=plot_seg)
         
     def training_iteration_gmm(self, data, device, model, gmm):

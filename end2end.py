@@ -69,13 +69,12 @@ class End2End:
         self._save_train_results(train_results)
         self._save_model(model)
 
-        self.eval(model, device, self.cfg.SAVE_IMAGES, False, False)
+        self.eval(model, device, self.cfg.SAVE_IMAGES, False, False, validation_loader)
 
         self._save_params()
 
-    def eval(self, model, device, save_images, plot_seg, reload_final):
+    def eval(self, model, device, save_images, plot_seg, reload_final, test_loader):
         self.reload_model(model, reload_final)
-        test_loader = get_dataset("TEST", self.cfg)
         self.eval_model(device, model, test_loader, save_folder=self.outputs_path, save_images=save_images, is_validation=False, plot_seg=plot_seg)
 
     def training_iteration(self, data, device, model, criterion_seg, optimizer, tensorboard_writer, iter_index):
