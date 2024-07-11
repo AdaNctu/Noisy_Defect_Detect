@@ -4,6 +4,7 @@ import torch
 from scipy.ndimage.morphology import distance_transform_edt
 from scipy.signal import convolve2d
 from config import Config
+from torchvision import transforms
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -22,6 +23,17 @@ class Dataset(torch.utils.data.Dataset):
         
         fake_image = torch.zeros(1, 1, self.cfg.INPUT_HEIGHT, self.cfg.INPUT_WIDTH)
         self.ouput_size = self.pool(fake_image).shape
+        
+        if self.cfg.DATASET == "KSDD2":
+            mean = (0.1767, 0.1706, 0.1750)
+            std = (0.0347, 0.0354, 0.0403)
+            self.normalize = transforms.Normalize(mean=mean, std=std)
+        elif self.cfg.DATASET == "DAGM":
+            mean = [0.2742, 0.3964, 0.5166, 0.6914, 0.4999, 0.3819, 0.7607, 0.0916, 0.4964, 0.6175]
+            std = [0.1121, 0.2252, 0.1279, 0.0762, 0.1186, 0.2680, 0.4294, 0.1443, 0.1250, 0.0973]
+            self.normalize = transforms.Normalize(mean=mean[self.cfg.FOLD-1], std=std[self.cfg.FOLD-1])
+        else:
+            self.normalize = None
 
     def init_extra(self):
         self.counter = 0
@@ -33,7 +45,7 @@ class Dataset(torch.utils.data.Dataset):
         
         if self.counter >= self.len:
             self.counter = 0
-            if self.frequency_sampling and self.kind == 'TRAIN':
+            if self.frequency_sampling:
                 sample_probability = 1 - (self.neg_retrieval_freq / np.max(self.neg_retrieval_freq))
                 sample_probability = sample_probability - np.median(sample_probability) + 1
                 sample_probability = sample_probability ** (np.log(len(sample_probability)) * 4)
@@ -67,6 +79,8 @@ class Dataset(torch.utils.data.Dataset):
                 item = self.pos_samples[ix]
 
         image, seg_mask, seg_loss_mask, is_segmented, image_path, seg_mask_path, sample_name, train_mask, is_pos = item
+        if self.normalize is not None:
+            image = self.normalize(image)
 
         self.counter = self.counter + 1
 
