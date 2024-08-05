@@ -61,8 +61,8 @@ class Config:
             self.INPUT_HEIGHT = 256
             self.INPUT_CHANNELS = 3
         elif self.DATASET == 'DAGM':
-            self.INPUT_WIDTH = 512
-            self.INPUT_HEIGHT = 512
+            self.INPUT_WIDTH = 256
+            self.INPUT_HEIGHT = 256
             self.INPUT_CHANNELS = 1
         else:
             raise Exception('Unknown dataset {}'.format(self.DATASET))

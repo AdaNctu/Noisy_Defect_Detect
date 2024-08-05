@@ -323,7 +323,11 @@ class End2End2:
             seg_mask = seg_mask.detach().cpu().numpy()
             human_mask = human_mask.detach().cpu().numpy()
             original_image = original_image.numpy()
-            diff.append((seg_mask!=human_mask).sum())
+            if (seg_mask!=human_mask).sum():
+                IoU = (seg_mask*human_mask).sum()/(seg_mask+human_mask).clip(0.0,1.0).sum()
+                diff.append(1.0 - IoU.item())
+            else:
+                diff.append(0.0)
 
             predictions.append(prediction)
             ground_truths.append(is_pos)
@@ -426,7 +430,7 @@ class End2End2:
         torch.save(model_2.state_dict(), output_name)
 
     def _get_optimizer(self, model, decay=1.0):
-        return torch.optim.SGD(model.parameters(), self.cfg.LEARNING_RATE*decay, weight_decay=1e-4)
+        return torch.optim.SGD(model.parameters(), self.cfg.LEARNING_RATE*decay, weight_decay=1e-4, momentum=0.9)
 
     def _get_loss(self, is_seg):
         reduction = "none" if self.cfg.WEIGHTED_SEG_LOSS and is_seg else "mean"

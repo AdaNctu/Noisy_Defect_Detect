@@ -75,7 +75,7 @@ class DagmDataset(Dataset):
                         sample[-1] = torch.ones(1)
                         pos_samples[order_pos[k+offset[i]]] = tuple(sample)
                 
-                for k in range(num_noisy):
+                for k in range(3*num_noisy):
                     sample = list(neg_samples[k])
                     noise_mask = add_noise(sample[1], 2)
                     sample[1] = noise_mask
@@ -86,16 +86,19 @@ class DagmDataset(Dataset):
                     neg_samples[k] = tuple(sample)
                 
             elif self.cfg.NOISY_TYPE in [2, 3] and self.kind == 'TEST':
+                correct_label = []
                 noisy_flag = True
                 for i in range(3):
                     for k in range(num_noisy):
+                        correct_label.append(pos_samples[order_pos[k+offset[i]]])
                         sample = list(pos_samples[order_pos[k+offset[i]]])
                         noise_mask = add_noise(sample[1], i)
                         sample[1] = noise_mask
                         sample[-1] = torch.ones(1)
                         pos_samples[order_pos[k+offset[i]]] = tuple(sample)
                 
-                for k in range(num_noisy):
+                for k in range(3*num_noisy):
+                    correct_label.append(neg_samples[k])
                     sample = list(neg_samples[k])
                     noise_mask = add_noise(sample[1], 2)
                     sample[1] = noise_mask
@@ -105,12 +108,19 @@ class DagmDataset(Dataset):
         if noisy_flag:
             self.pos_samples = []
             self.neg_samples = []
-            for item in pos_samples+neg_samples:
-                if item[1].max():
-                    self.pos_samples.append(item)
-                else:
-                    self.neg_samples.append(item)
-            
+            if self.kind in ['TRAIN']:
+                for item in pos_samples+neg_samples:
+                    if item[1].max():
+                        self.pos_samples.append(item)
+                    else:
+                        self.neg_samples.append(item)
+            elif self.kind in ['TEST']:
+                for item in pos_samples+neg_samples:
+                    if item[-1]:
+                        self.pos_samples.append(item)
+                    elif item[1].max():
+                        self.neg_samples.append(item)
+                self.neg_samples = self.neg_samples+correct_label
         else:
             self.pos_samples = pos_samples
             self.neg_samples = neg_samples
