@@ -13,8 +13,8 @@ def add_noise(mask, noise_type):
     if noise_type==0:
         #small
         shift = torch.zeros(mask.shape)
-        offset = torch.randint(0,6,(1,))
-        offset = (offset, 5-offset)
+        offset = torch.randint(1,4,(1,))
+        offset = (offset, 4-offset)
         if torch.randn(1) > 0:
             h0 += offset[0]
             H1 -= offset[0]
@@ -36,8 +36,8 @@ def add_noise(mask, noise_type):
         #big
         while True:
             shift = torch.zeros(mask.shape)
-            offset = torch.randint(0,6,(1,))
-            offset = (offset, 5-offset)
+            offset = torch.randint(1,4,(1,))
+            offset = (offset, 4-offset)
             if torch.randn(1) > 0:
                 h0 += offset[0]
                 H1 -= offset[0]
@@ -71,7 +71,7 @@ def add_noise(mask, noise_type):
             h0 = torch.randint(0,h,(1,))
             w0 = torch.randint(0,w,(1,))
         pool = nn.MaxPool2d(3,1,1)
-        for _ in range(torch.randint(3,7,(1,)).item()):
+        for _ in range(torch.randint(1,10,(1,)).item()):
             if len(shift.shape)==4:
                 shift[:,:,h0,w0] = 1.0
             else:
