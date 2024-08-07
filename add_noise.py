@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
 
-def add_noise(mask, noise_type):
+def add_noise(mask, noise_type, th0=0, th1=1):
     h, w = mask.shape[-2:]
+    th0 = int(th0)
+    th1 = int(th1)
     
     h0, h1 = 0, h
     w0, w1 = 0, w
@@ -71,7 +73,7 @@ def add_noise(mask, noise_type):
             h0 = torch.randint(0,h,(1,))
             w0 = torch.randint(0,w,(1,))
         pool = nn.MaxPool2d(3,1,1)
-        for _ in range(torch.randint(1,10,(1,)).item()):
+        for _ in range(torch.randint(th0,th1+1,(1,)).item()):
             if len(shift.shape)==4:
                 shift[:,:,h0,w0] = 1.0
             else:

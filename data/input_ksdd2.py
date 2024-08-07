@@ -28,6 +28,7 @@ class KSDD2Dataset(Dataset):
 
         data_points = read_split(self.cfg.NUM_SEGMENTED, self.kind)
         #self.cfg.NUM_NOISY, self.cfg.NOISY_TYPE
+        defect_size = []
         for part, is_segmented in data_points:
             image_path = os.path.join(self.path, self.kind.lower(), f"{part}.png")
             seg_mask_path = os.path.join(self.path, self.kind.lower(), f"{part}_GT.png")
@@ -41,10 +42,18 @@ class KSDD2Dataset(Dataset):
             
             if seg_mask.sum():
                 pos_samples.append((image, seg_mask, seg_loss_mask, True, image_path, seg_mask_path, part, seg_mask, torch.zeros(1)))
+                defect_size.append(seg_mask.sum().item())
             else:
                 neg_samples.append((image, seg_mask, seg_loss_mask, True, image_path, seg_mask_path, part, seg_mask, torch.zeros(1)))
         
         print(self.kind, len(pos_samples), len(neg_samples))
+        defect_size = torch.tensor(defect_size).float()
+        print("mean & std",defect_size.mean(),defect_size.std())
+        th0 = (defect_size.mean()-defect_size.std())//9
+        th0 = max(th0, 1.0)
+        th1 = (defect_size.mean()+defect_size.std())//9
+        th1 = max(th1, th0+1)
+        print("th=",th0, th1)
         
         noisy_flag = False
         if self.cfg.NUM_NOISY is not None and self.cfg.NUM_NOISY > 0:
@@ -58,7 +67,7 @@ class KSDD2Dataset(Dataset):
                 for i in range(3):
                     for k in range(num_noisy):
                         sample = list(pos_samples[order_pos[k+offset[i]]])
-                        noise_mask = add_noise(sample[1], i)
+                        noise_mask = add_noise(sample[1], i, th0, th1)
                         sample[1] = noise_mask
                         if self.cfg.NOISY_TYPE in [2]:
                             sample[-2] = noise_mask
@@ -68,7 +77,7 @@ class KSDD2Dataset(Dataset):
                 
                 for k in range(3*num_noisy):
                     sample = list(neg_samples[k])
-                    noise_mask = add_noise(sample[1], 2)
+                    noise_mask = add_noise(sample[1], 2, th0, th1)
                     sample[1] = noise_mask
                     if self.cfg.NOISY_TYPE in [2]:
                         sample[-2] = noise_mask
@@ -83,7 +92,7 @@ class KSDD2Dataset(Dataset):
                     for k in range(num_noisy):
                         correct_label.append(pos_samples[order_pos[k+offset[i]]])
                         sample = list(pos_samples[order_pos[k+offset[i]]])
-                        noise_mask = add_noise(sample[1], i)
+                        noise_mask = add_noise(sample[1], i, th0, th1)
                         sample[1] = noise_mask
                         sample[-1] = torch.ones(1)
                         pos_samples[order_pos[k+offset[i]]] = tuple(sample)
@@ -91,7 +100,7 @@ class KSDD2Dataset(Dataset):
                 for k in range(3*num_noisy):
                     correct_label.append(neg_samples[k])
                     sample = list(neg_samples[k])
-                    noise_mask = add_noise(sample[1], 2)
+                    noise_mask = add_noise(sample[1], 2, th0, th1)
                     sample[1] = noise_mask
                     sample[-1] = torch.ones(1)
                     neg_samples[k] = tuple(sample)
@@ -101,9 +110,9 @@ class KSDD2Dataset(Dataset):
             self.neg_samples = []
             if self.kind in ['TRAIN']:
                 for item in pos_samples+neg_samples:
-                    if item[1].max():
+                    if item[-1]:
                         self.pos_samples.append(item)
-                    else:
+                    elif item[1].max():
                         self.neg_samples.append(item)
             elif self.kind in ['TEST']:
                 for item in pos_samples+neg_samples:
@@ -120,7 +129,6 @@ class KSDD2Dataset(Dataset):
         self.num_neg = len(self.neg_samples)
         self.len = 2*len(self.pos_samples) if self.kind in ['TRAIN'] else len(self.pos_samples) + len(self.neg_samples)
         if self.kind in ['TRAIN'] and not self.cfg.FREQUENCY_SAMPLING:
-            self.len = len(self.pos_samples)
-            self.num_neg = 0
+            self.len = len(self.pos_samples) + len(self.neg_samples)
         
         self.init_extra()

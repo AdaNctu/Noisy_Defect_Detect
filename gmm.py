@@ -9,13 +9,14 @@ class Gmm:
         self.recoder_neg = []
         self.image_output = []
         self.image_label = []
+        self.indexs = []
         self.root_2 = torch.tensor(2.0).pow(0.5)
     
     def CDF(self, mean, std, value):
         z = (value-mean)/std
         return 0.5*(1+torch.special.erf(z/self.root_2))
         
-    def add_output(self, model_output, train_label):
+    def add_output(self, model_output, train_label, index):
         model_output = model_output.cpu()
         train_label = train_label.cpu()
         if (train_label>0.0).any():
@@ -26,12 +27,14 @@ class Gmm:
             self.image_output.append(image)
         for image in train_label:
             self.image_label.append(image)
+        self.indexs = self.indexs + index.tolist()
     
     def new_epoch(self):
         self.recoder_pos.append([])
         self.recoder_neg.append([])
         self.image_output = []
         self.image_label = []
+        self.indexs = []
     
     def train(self):
         self.gmm_pos = GaussianMixture(n_components=2, max_iter=10, tol=1e-2, reg_covar=5e-4)
@@ -64,8 +67,12 @@ class Gmm:
             prob = torch.where(mask_pos, prob_pos, prob_neg)
             self.disagree.append(prob.pow(4.0).sum().item())
         
-        self.disagree, _ = torch.tensor(self.disagree).sort(descending=True)
+        self.disagree, order = torch.tensor(self.disagree).sort(descending=True)
+        self.indexs = [self.indexs[i] for i in order]
     
+    def get_clear_index(self, drop_rate):
+        return self.indexs[int(drop_rate*len(self.disagree)):]
+        
     def get_drop_th(self, drop_rate):
         drop_th = self.disagree[int(drop_rate*len(self.disagree))]
         

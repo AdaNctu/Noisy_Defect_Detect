@@ -78,7 +78,7 @@ class End2End:
         self.eval_model(device, model, test_loader, save_folder=self.outputs_path, save_images=save_images, is_validation=False, plot_seg=plot_seg)
 
     def training_iteration(self, data, device, model, criterion_seg, optimizer, tensorboard_writer, iter_index):
-        images, seg_masks, seg_loss_masks, is_segmented, _, is_pos, train_masks = data
+        images, seg_masks, seg_loss_masks, is_segmented, _, is_pos, train_masks, _ = data
 
         batch_size = self.cfg.BATCH_SIZE
         memory_fit = self.cfg.MEMORY_FIT  # Not supported yet for >1
@@ -154,7 +154,8 @@ class End2End:
             model.train()
             
             if epoch == num_epochs - num_epochs//4:
-                optimizer = self._get_optimizer(model, 0.1)
+                for g in optimizer.param_groups:
+                    g['lr'] = g['lr']*0.1
             epoch_loss = 0
             epoch_correct = 0
             epoch_seg_correct = 0
@@ -323,8 +324,8 @@ class End2End:
 
         torch.save(model.state_dict(), output_name)
 
-    def _get_optimizer(self, model, decay=1.0):
-        return torch.optim.SGD(model.parameters(), self.cfg.LEARNING_RATE*decay, weight_decay=1e-4, momentum=0.9)
+    def _get_optimizer(self, model):
+        return torch.optim.SGD(model.parameters(), self.cfg.LEARNING_RATE, weight_decay=1e-4, momentum=0.9)
 
     def _get_loss(self, is_seg):
         reduction = "none" if self.cfg.WEIGHTED_SEG_LOSS and is_seg else "mean"

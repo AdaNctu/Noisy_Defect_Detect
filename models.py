@@ -75,16 +75,17 @@ class SegDecNet(nn.Module):
         self.volume = nn.Sequential(_conv_block(self.input_channels, 32, 5, 2),
                                     # _conv_block(32, 32, 5, 2), # Has been accidentally left out and remained the same since then
                                     nn.MaxPool2d(2),
-                                    _conv_block(32, 64, 5, 2),
-                                    _conv_block2(64, 64, 5, 2),
-                                    _conv_block2(64, 64, 5, 2),
+                                    _conv_block(32, 128, 5, 2),
+                                    _conv_block2(128, 128, 5, 2),
+                                    _conv_block2(128, 128, 5, 2),
                                     nn.MaxPool2d(2),
-                                    _conv_block(64, 64, 5, 2),
-                                    _conv_block2(64, 64, 5, 2),
-                                    _conv_block(64, 64, 5, 2),
-                                    _conv_block2(64, 64, 5, 2),
+                                    nn.Dropout(0.05),
+                                    _conv_block(128, 128, 5, 2),
+                                    _conv_block2(128, 128, 5, 2),
+                                    _conv_block(128, 128, 5, 2),
+                                    _conv_block2(128, 128, 5, 2),
                                     nn.MaxPool2d(2),
-                                    _conv_block(64, 1024, 15, 7))
+                                    _conv_block(128, 1024, 15, 7))
 
         self.seg_mask = nn.Sequential(
                                       Conv2d_init(in_channels=1024, out_channels=1, kernel_size=5, padding=2, bias=False),

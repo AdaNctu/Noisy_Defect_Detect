@@ -20,6 +20,7 @@ class Dataset(torch.utils.data.Dataset):
         self.frequency_sampling: bool = self.cfg.FREQUENCY_SAMPLING and self.kind == 'TRAIN'
         self.pool = torch.nn.AvgPool2d(32, stride=16, padding=0)
         self.th = 0.2
+        self.with_index = None
         
         fake_image = torch.zeros(1, 1, self.cfg.INPUT_HEIGHT, self.cfg.INPUT_WIDTH)
         self.ouput_size = self.pool(fake_image).shape
@@ -34,7 +35,26 @@ class Dataset(torch.utils.data.Dataset):
             self.normalize = transforms.Normalize(mean=mean[self.cfg.FOLD-1], std=std[self.cfg.FOLD-1])
         else:
             self.normalize = None
-
+    
+    def set_with_index(self, with_index):
+        self.with_index = with_index
+    
+    def clear_with_index(self):
+        self.with_index = None
+    def remain_noisy(self):
+        if self.with_index is not None:
+            noisy = 0
+            for index in self.with_index:
+                if index < self.num_neg:
+                    ix = index
+                    item = self.neg_samples[ix]
+                else:
+                    ix = index - self.num_neg
+                    item = self.pos_samples[ix]
+                noisy += item[-1].item()
+            return noisy
+        else:
+            return -1
     def init_extra(self):
         self.counter = 0
         self.neg_imgs_permutation = np.random.permutation(self.num_neg)
@@ -42,6 +62,8 @@ class Dataset(torch.utils.data.Dataset):
         self.neg_retrieval_freq = np.zeros(shape=self.num_neg)
 
     def __getitem__(self, index) -> (torch.Tensor, torch.Tensor, torch.Tensor, bool, str):
+        if self.with_index is not None:
+            index = self.with_index[index]
         
         if self.counter >= self.len:
             self.counter = 0
@@ -89,10 +111,13 @@ class Dataset(torch.utils.data.Dataset):
         if self.kind != 'TRAIN':
             return image, seg_mask, seg_loss_mask, is_segmented, sample_name, is_pos, train_mask, original_image
         else:
-            return image, seg_mask, seg_loss_mask, is_segmented, sample_name, is_pos, train_mask
+            return image, seg_mask, seg_loss_mask, is_segmented, sample_name, is_pos, train_mask, index
 
     def __len__(self):
-        return self.len
+        if self.with_index is None:
+            return self.len
+        else:
+            return len(self.with_index)
 
     def read_contents(self):
         pass
