@@ -203,7 +203,7 @@ class End2End:
             seg_mask = seg_mask.detach().cpu().numpy()
             human_mask = human_mask.detach().cpu().numpy()
             original_image = original_image.numpy()
-            diff.append((seg_mask!=human_mask).sum().cpu().item())
+            diff.append((seg_mask!=human_mask).sum().item())
 
             predictions.append(prediction)
             ground_truths.append(is_pos)
@@ -321,7 +321,7 @@ class End2End:
         list(map(utils.create_folder, [self.run_path, self.model_path, self.outputs_path, ]))
 
     def _get_model(self):
-        seg_net = SegDecNet(self._get_device(), self.cfg.INPUT_WIDTH, self.cfg.INPUT_HEIGHT, self.cfg.INPUT_CHANNELS, self.output_shape, self.cfg.TT)
+        seg_net = SegDecNet(self._get_device(), self.cfg.INPUT_WIDTH, self.cfg.INPUT_HEIGHT, self.cfg.INPUT_CHANNELS)
         return seg_net
 
     def print_run_params(self):

@@ -64,14 +64,13 @@ class FeatureNorm(nn.Module):
 
 
 class SegDecNet(nn.Module):
-    def __init__(self, device, input_width, input_height, input_channels, output_shape, tt=1.0):
+    def __init__(self, device, input_width, input_height, input_channels):
         super(SegDecNet, self).__init__()
         if input_width % 8 != 0 or input_height % 8 != 0:
             raise Exception(f"Input size must be divisible by 8! width={input_width}, height={input_height}")
         self.input_width = input_width
         self.input_height = input_height
         self.input_channels = input_channels
-        self.tt = tt
         self.volume = nn.Sequential(_conv_block(self.input_channels, 32, 5, 2),
                                     # _conv_block(32, 32, 5, 2), # Has been accidentally left out and remained the same since then
                                     nn.MaxPool2d(2),

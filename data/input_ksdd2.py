@@ -54,8 +54,7 @@ class KSDD2Dataset(Dataset):
         th1 = max(th1, th0+1)
         print("th=",th0, th1)
         
-        noisy_flag = False
-        if self.cfg.NUM_NOISY is not None and self.cfg.NUM_NOISY > 0:
+        if self.cfg.NOISE_RATE is not None and self.cfg.NOISE_RATE > 0:
             nois_rate = self.cfg.NOISE_RATE
             nois_rate = nois_rate/(6.0-3.0*nois_rate)
             num_noisy = int(len(pos_samples)*nois_rate)
@@ -64,7 +63,6 @@ class KSDD2Dataset(Dataset):
             offset = [i*(len(pos_samples)//3) for i in range(3)]#2 add, 1 big, 0 small
             
             if self.kind == 'TRAIN':
-                noisy_flag = True
                 for i in range(3):
                     for k in range(num_noisy):
                         sample = list(pos_samples[order_pos[k+offset[i]]])
@@ -88,7 +86,6 @@ class KSDD2Dataset(Dataset):
                 
             elif self.kind == 'TEST':
                 correct_label = []
-                noisy_flag = True
                 for i in range(3):
                     for k in range(num_noisy):
                         correct_label.append(pos_samples[order_pos[k+offset[i]]])
