@@ -35,8 +35,8 @@ class Gmm:
         
         neg_data = image_output[mask.logical_not()]
         
-        self.gmm_pos.fit(torch.sigmoid(pos_data))
-        self.gmm_neg.fit(torch.sigmoid(neg_data))
+        self.gmm_pos.fit(torch.sigmoid(pos_data).view(-1,1))
+        self.gmm_neg.fit(torch.sigmoid(neg_data).view(-1,1))
         
         self.disagree = []
         for k in range(len(self.image_output)):
