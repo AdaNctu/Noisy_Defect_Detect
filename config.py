@@ -3,7 +3,7 @@ class Config:
 
     RUN_NAME = None
 
-    DATASET = None  # KSDD, DAGM, STEEL, KSDD2
+    DATASET = None  # DAGM, KSDD2
     DATASET_PATH = None
 
     EPOCHS = None
@@ -14,7 +14,6 @@ class Config:
 
     WEIGHTED_SEG_LOSS = None
     WEIGHTED_DEFECT = 1.0
-    FREQUENCY_SAMPLING = True
 
     # Default values
     FOLD = None
@@ -39,10 +38,8 @@ class Config:
     INPUT_CHANNELS = None
     
     #Noisy
-    NUM_NOISY = None
-    NOISY_TYPE = -1
-    TT = 1.0
-    AD = 0.0
+    NOISE_RATE = 0.5
+    CLEAN_TRAIN = False
     #Co-train
     COTRAIN=False
     DROP_RATE = 0.5
@@ -76,7 +73,6 @@ class Config:
         self.LEARNING_RATE = args.LEARNING_RATE
         self.BATCH_SIZE = args.BATCH_SIZE
         self.WEIGHTED_SEG_LOSS = args.WEIGHTED_SEG_LOSS
-        self.FREQUENCY_SAMPLING = args.FREQUENCY_SAMPLING
         self.NUM_SEGMENTED = args.NUM_SEGMENTED
 
         if args.FOLD is not None: self.FOLD = args.FOLD
@@ -89,10 +85,8 @@ class Config:
         if args.REPRODUCIBLE_RUN is not None: self.REPRODUCIBLE_RUN = args.REPRODUCIBLE_RUN
         if args.MEMORY_FIT is not None: self.MEMORY_FIT = args.MEMORY_FIT
         if args.SAVE_IMAGES is not None: self.SAVE_IMAGES = args.SAVE_IMAGES
-        if args.NUM_NOISY is not None: self.NUM_NOISY = args.NUM_NOISY
-        if args.NOISY_TYPE is not None: self.NOISY_TYPE = args.NOISY_TYPE
-        if args.TT is not None: self.TT = args.TT
-        if args.AD is not None: self.AD = args.AD
+        if args.NOISE_RATE is not None: self.NOISE_RATE = args.NOISE_RATE
+        if args.CLEAN_TRAIN is not None: self.CLEAN_TRAIN = args.CLEAN_TRAIN
         if args.WEIGHTED_DEFECT is not None: self.WEIGHTED_DEFECT = args.WEIGHTED_DEFECT
         if args.COTRAIN is not None: self.COTRAIN = args.COTRAIN
         if args.DROP_RATE is not None: self.DROP_RATE = args.DROP_RATE
@@ -107,7 +101,6 @@ class Config:
             "BATCH_SIZE": self.BATCH_SIZE,
             "WEIGHTED_SEG_LOSS": self.WEIGHTED_SEG_LOSS,
             "WEIGHTED_DEFECT": self.WEIGHTED_DEFECT,
-            "FREQUENCY_SAMPLING": self.FREQUENCY_SAMPLING,
             "FOLD": self.FOLD,
             "NUM_SEGMENTED": self.NUM_SEGMENTED,
             "RESULTS_PATH": self.RESULTS_PATH,
@@ -122,10 +115,8 @@ class Config:
             "INPUT_HEIGHT": self.INPUT_HEIGHT,
             "INPUT_CHANNELS": self.INPUT_CHANNELS,
             "SAVE_IMAGES": self.SAVE_IMAGES,
-            "NUM_NOISY": self.NUM_NOISY,
-            "NOISY_TYPE": self.NOISY_TYPE,
-            "TT": self.TT,
-            "AD": self.AD,
+            "NOISE_RATE": self.NOISE_RATE,
+            "CLEAN_TRAIN": self.CLEAN_TRAIN,
             "COTRAIN": self.COTRAIN,
             "DROP_RATE": self.DROP_RATE,
         }
@@ -143,7 +134,6 @@ def load_from_dict(dictionary):
     cfg.BATCH_SIZE = dictionary.get("BATCH_SIZE", None)
     cfg.WEIGHTED_SEG_LOSS = dictionary.get("WEIGHTED_SEG_LOSS", None)
     cfg.WEIGHTED_DEFECT = dictionary.get("WEIGHTED_DEFECT", None)
-    cfg.FREQUENCY_SAMPLING = dictionary.get("FREQUENCY_SAMPLING", None)
     cfg.FOLD = dictionary.get("FOLD", None)
     cfg.NUM_SEGMENTED = dictionary.get("NUM_SEGMENTED", None)
     cfg.RESULTS_PATH = dictionary.get("RESULTS_PATH", None)
@@ -158,10 +148,8 @@ def load_from_dict(dictionary):
     cfg.INPUT_HEIGHT = dictionary.get("INPUT_HEIGHT", None)
     cfg.INPUT_CHANNELS = dictionary.get("INPUT_CHANNELS", None)
     cfg.SAVE_IMAGES = dictionary.get("SAVE_IMAGES", None)
-    cfg.NUM_NOISY = dictionary.get("NUM_NOISY", None)
-    cfg.NOISY_TYPE = dictionary.get("NOISY_TYPE", None)
-    cfg.TT = dictionary.get("TT", None)
-    cfg.AD = dictionary.get("AD", None)
+    cfg.NOISE_RATE = dictionary.get("NOISE_RATE", None)
+    cfg.CLEAN_TRAIN = dictionary.get("CLEAN_TRAIN", None)
     cfg.COTRAIN = dictionary.get("COTRAIN", None)
     cfg.DROP_RATE = dictionary.get("DROP_RATE", None)
 

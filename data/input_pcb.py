@@ -27,7 +27,6 @@ class PCBDataset(Dataset):
         pos_samples, neg_samples = [], []
 
         data_points = read_split(self.cfg.NUM_SEGMENTED, self.kind)
-        #self.cfg.NUM_NOISY, self.cfg.NOISY_TYPE
         for part in data_points:
             image_path = os.path.join(self.path, self.kind.lower(), f"{part}_0.jpg")
             dirty_mask_path = os.path.join(self.path, self.kind.lower(), f"{part}_1.jpg")
@@ -41,7 +40,7 @@ class PCBDataset(Dataset):
             dirty_mask = self.get_patch_level(self.to_tensor(dirty_mask))
             clean_mask = self.get_patch_level(self.to_tensor(clean_mask))
             positive = (dirty_mask!=clean_mask).any()
-            if self.cfg.NOISY_TYPE == 2 and self.kind == 'TRAIN':
+            if not self.cfg.CLEAN_TRAIN and self.kind == 'TRAIN':
                 clean_mask = dirty_mask
             
             seg_loss_mask = torch.where((clean_mask>0.0), torch.tensor(self.cfg.WEIGHTED_DEFECT), torch.tensor(1.0))

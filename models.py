@@ -79,7 +79,7 @@ class SegDecNet(nn.Module):
                                     _conv_block2(128, 128, 5, 2),
                                     _conv_block2(128, 128, 5, 2),
                                     nn.MaxPool2d(2),
-                                    nn.Dropout(0.05),
+                                    nn.Dropout(0.20),
                                     _conv_block(128, 128, 5, 2),
                                     _conv_block2(128, 128, 5, 2),
                                     _conv_block(128, 128, 5, 2),
@@ -103,7 +103,7 @@ class SegDecNet(nn.Module):
         seg_mask = self.seg_mask(volume)
         model_mask = self.Sigmoid(seg_mask).detach()
         ######################################################
-        diagree = model_mask.pow(self.tt)*(1.0-human_mask) + (1.0-model_mask).pow(self.tt)*human_mask
-        prediction = (diagree).sum(dim=(2,3))
+        disagree = (model_mask-human_mask).abs().pow(2.0)
+        prediction = (disagree).sum(dim=(2,3))
             
         return prediction, seg_mask

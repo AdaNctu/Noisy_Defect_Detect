@@ -24,7 +24,6 @@ def parse_args():
 
     parser.add_argument('--WEIGHTED_SEG_LOSS', type=str2bool, required=True, help="Whether to use weighted segmentation loss.")
     parser.add_argument('--WEIGHTED_DEFECT', type=float, default=None, help="Defect part weighted segmentation loss.")
-    parser.add_argument('--FREQUENCY_SAMPLING', type=str2bool, required=False, help="Whether to use frequency-of-use based sampling.")
 
     parser.add_argument('--FOLD', type=int, default=None, help="Which fold (KSDD) or class (DAGM) to train.")
     parser.add_argument('--NUM_SEGMENTED', type=int, required=True, default=None, help="Number of segmented positive  samples.")
@@ -40,10 +39,8 @@ def parse_args():
 
     parser.add_argument('--MEMORY_FIT', type=int, default=None, help="How many images can be fitted in GPU memory.")
     parser.add_argument('--SAVE_IMAGES', type=str2bool, default=None, help="Save test images or not.")
-    parser.add_argument('--NUM_NOISY', type=int, default=None, help="Number of noisy  samples.")
-    parser.add_argument('--NOISY_TYPE', type=int, default=None, help="Noisy type")
-    parser.add_argument('--TT', type=float, default=None, help="Temperature")
-    parser.add_argument('--AD', type=float, default=None, help="logit ad")
+    parser.add_argument('--NOISE_RATE', type=float, default=None, help="Noise Level")
+    parser.add_argument('--CLEAN_TRAIN', type=str2bool, default=None, help="Use GT Label")
     parser.add_argument('--COTRAIN', type=str2bool, default=None, help="co-training")
     parser.add_argument('--DROP_RATE', type=float, default=None, help="drop rate")
 

@@ -65,7 +65,7 @@ def add_noise(mask, noise_type, th0=0, th1=1):
         return (mask+shift).clip(0,1)
     
     elif noise_type==2:
-        #add
+        #spawn
         shift = torch.zeros(mask.shape)
         h0 = torch.randint(0,h,(1,))
         w0 = torch.randint(0,w,(1,))

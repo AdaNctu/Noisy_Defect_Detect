@@ -65,21 +65,21 @@ class DagmDataset(Dataset):
         th1 = max(th1, th0+1)
         print("th=",th0, th1)
         
-        noisy_flag = False
         if self.cfg.NUM_NOISY is not None and self.cfg.NUM_NOISY > 0:
-            num_noisy = len(pos_samples)*self.cfg.NUM_NOISY//100
+            nois_rate = self.cfg.NOISE_RATE
+            nois_rate = nois_rate/(6.0-3.0*nois_rate)
+            num_noisy = int(len(pos_samples)*nois_rate)
             print(f'num_noisy={num_noisy}')
             _, order_pos = torch.tensor([pos[1].sum().item() for pos in pos_samples]).sort(descending=True)
-            offset = [i*(len(pos_samples)//3) for i in range(3)]#2 add, 1 big, 0 small
+            offset = [i*(len(pos_samples)//3) for i in range(3)]#2 add, 1 big, 0 spawn
             
-            if self.cfg.NOISY_TYPE in [2, 3] and self.kind == 'TRAIN':
-                noisy_flag = True
+            if self.kind == 'TRAIN':
                 for i in range(3):
                     for k in range(num_noisy):
                         sample = list(pos_samples[order_pos[k+offset[i]]])
                         noise_mask = add_noise(sample[1], i, th0, th1)
                         sample[1] = noise_mask
-                        if self.cfg.NOISY_TYPE in [2]:
+                        if not self.cfg.CLEAN_TRAIN:
                             sample[-2] = noise_mask
                             sample[2] = torch.where((noise_mask>0.0), torch.tensor(self.cfg.WEIGHTED_DEFECT), torch.tensor(1.0))
                         sample[-1] = torch.ones(1)
@@ -89,13 +89,13 @@ class DagmDataset(Dataset):
                     sample = list(neg_samples[k])
                     noise_mask = add_noise(sample[1], 2, th0, th1)
                     sample[1] = noise_mask
-                    if self.cfg.NOISY_TYPE in [2]:
+                    if not self.cfg.CLEAN_TRAIN:
                         sample[-2] = noise_mask
                         sample[2] = torch.where((noise_mask>0.0), torch.tensor(self.cfg.WEIGHTED_DEFECT), torch.tensor(1.0))
                     sample[-1] = torch.ones(1)
                     neg_samples[k] = tuple(sample)
                 
-            elif self.cfg.NOISY_TYPE in [2, 3] and self.kind == 'TEST':
+            elif self.kind == 'TEST':
                 correct_label = []
                 noisy_flag = True
                 for i in range(3):
@@ -115,30 +115,25 @@ class DagmDataset(Dataset):
                     sample[-1] = torch.ones(1)
                     neg_samples[k] = tuple(sample)
         
-        if noisy_flag:
-            self.pos_samples = []
-            self.neg_samples = []
-            if self.kind in ['TRAIN']:
-                for item in pos_samples+neg_samples:
-                    if item[-1]:
-                        self.pos_samples.append(item)
-                    elif item[1].max():
-                        self.neg_samples.append(item)
-            elif self.kind in ['TEST']:
-                for item in pos_samples+neg_samples:
-                    if item[-1]:
-                        self.pos_samples.append(item)
-                    elif item[1].max():
-                        self.neg_samples.append(item)
-                self.neg_samples = self.neg_samples+correct_label
-        else:
-            self.pos_samples = pos_samples
-            self.neg_samples = neg_samples
+        self.pos_samples = []
+        self.neg_samples = []
+        if self.kind in ['TRAIN']:
+            for item in pos_samples+neg_samples:
+                if item[-1]:
+                    self.pos_samples.append(item)
+                elif item[1].max():
+                    self.neg_samples.append(item)
+        elif self.kind in ['TEST']:
+            for item in pos_samples+neg_samples:
+                if item[-1]:
+                    self.pos_samples.append(item)
+                elif item[1].max():
+                    self.neg_samples.append(item)
+            self.neg_samples = self.neg_samples+correct_label
+        
         print(self.kind, len(self.pos_samples), len(self.neg_samples))
         self.num_pos = len(self.pos_samples)
         self.num_neg = len(self.neg_samples)
-        self.len = 2*len(self.pos_samples) if self.kind in ['TRAIN'] else len(self.pos_samples) + len(self.neg_samples)
-        if self.kind in ['TRAIN'] and not self.cfg.FREQUENCY_SAMPLING:
-            self.len = len(self.pos_samples) + len(self.neg_samples)
+        self.len = len(self.pos_samples) + len(self.neg_samples)
         
         self.init_extra()

@@ -30,13 +30,6 @@ class End2End:
     def __init__(self, cfg: Config):
         self.cfg: Config = cfg
         self.storage_path: str = os.path.join(self.cfg.RESULTS_PATH, self.cfg.DATASET)
-        
-        pool = torch.nn.AvgPool2d(32, stride=16, padding=0)
-        fake_image = torch.zeros(1, 1, self.cfg.INPUT_HEIGHT, self.cfg.INPUT_WIDTH)
-        shape = pool(fake_image).shape
-        self.output_shape = shape[-1]*shape[-2]
-        self.counter = 0
-        self.decision_mean = torch.zeros(256)
 
     def _log(self, message, lvl=LVL_INFO):
         n_msg = f"{self.run_name} {message}"
@@ -84,10 +77,6 @@ class End2End:
         memory_fit = self.cfg.MEMORY_FIT  # Not supported yet for >1
 
         num_subiters = int(batch_size / memory_fit)
-        #
-        total_correct = 0
-        seg_correct = 0
-        cheat = 0
 
         optimizer.zero_grad()
 
@@ -107,27 +96,15 @@ class End2End:
             
             decision, output_seg_mask = model(images_, seg_masks_)
             
-            cheat += (seg_masks_ != train_masks_).long().max()
-            
+            train_masks_smooth = 0.99*train_masks_ + 0.01*(1.0-train_masks_)
             if self.cfg.WEIGHTED_SEG_LOSS:
-                ad = (train_masks_>0.0).float()*self.cfg.AD
-                loss_seg = torch.mean(criterion_seg(output_seg_mask-ad, train_masks_) * seg_loss_masks_)
+                loss_seg = torch.mean(criterion_seg(output_seg_mask, train_masks_smooth) * seg_loss_masks_)
             else:
-                loss_seg = criterion_seg(output_seg_mask, train_masks_)
+                loss_seg = criterion_seg(output_seg_mask, train_masks_smooth)
             
-            if (is_pos_==0).sum():
-                for d in decision[(is_pos_==0)]:
-                    self.decision_mean[self.counter] = d.cpu()
-                    self.counter = (self.counter+1)%256
-            
-            total_correct += ((decision > self.decision_mean.mean()+self.decision_mean.std()*2) == is_pos_).sum()
-            seg_correct += ((output_seg_mask > 0.0) == train_masks_).float().mean(dim=(1,2,3)).sum()
             loss = loss_seg
             
             loss /= num_subiters
-            if torch.isnan(loss):
-                torch.save([loss.detach(),output_seg_mask, ad, train_masks_],'NaN')
-                exit()
             total_loss += loss.item()
 
             loss.backward()
@@ -136,7 +113,7 @@ class End2End:
         optimizer.step()
         optimizer.zero_grad()
 
-        return total_loss, total_correct, seg_correct, cheat
+        return total_loss
 
     def _train_model(self, device, model, train_loader, criterion_seg, optimizer, validation_set, tensorboard_writer):
         losses = []
@@ -157,9 +134,6 @@ class End2End:
                 for g in optimizer.param_groups:
                     g['lr'] = g['lr']*0.1
             epoch_loss = 0
-            epoch_correct = 0
-            epoch_seg_correct = 0
-            epoch_cheat = 0
             from timeit import default_timer as timer
 
             time_acc = 0
@@ -173,15 +147,11 @@ class End2End:
                                                 tensorboard_writer, 
                                                 (epoch * samples_per_epoch + iter_index))
                                                 
-                curr_loss, correct, seg_correct, cheat = result
+                curr_loss = result
                 end_1 = timer()
                 time_acc = time_acc + (end_1 - start_1)
                 
                 epoch_loss += curr_loss
-
-                epoch_correct += correct
-                epoch_seg_correct += seg_correct
-                epoch_cheat += cheat
 
             end = timer()
 
@@ -189,7 +159,7 @@ class End2End:
             losses.append((epoch_loss, epoch))
 
             self._log(
-                f"Epoch {epoch + 1}/{num_epochs} ==> avg_loss={epoch_loss:.5f}, correct={epoch_correct}/{samples_per_epoch}, seg_correct={epoch_seg_correct:.3f}, cheat={epoch_cheat:.0f} in {end - start:.2f}s/epoch (fwd/bck in {time_acc:.2f}s/epoch)")
+                f"Epoch {epoch + 1}/{num_epochs} ==> avg_loss={epoch_loss:.5f} in {end - start:.2f}s/epoch (fwd/bck in {time_acc:.2f}s/epoch)")
 
             if tensorboard_writer is not None:
                 tensorboard_writer.add_scalar("Loss/Train/segmentation", epoch_loss_seg, epoch)
@@ -226,7 +196,6 @@ class End2End:
             is_pos = is_pos.item()
             prediction, pred_seg = model(image, human_mask)
             pred_seg = nn.Sigmoid()(pred_seg)
-            #prediction = nn.Sigmoid()(prediction)
 
             prediction = prediction.item()
             image = image.detach().cpu().numpy()
@@ -234,15 +203,13 @@ class End2End:
             seg_mask = seg_mask.detach().cpu().numpy()
             human_mask = human_mask.detach().cpu().numpy()
             original_image = original_image.numpy()
-            if (seg_mask!=human_mask).sum():
-                IoU = (seg_mask*human_mask).sum()/(seg_mask+human_mask).clip(0.0,1.0).sum()
-                diff.append(1.0 - IoU.item())
-            else:
-                diff.append(0.0)
+            diff.append((seg_mask!=human_mask).sum().cpu().item())
 
             predictions.append(prediction)
             ground_truths.append(is_pos)
             res.append((prediction, None, None, is_pos, sample_name[0]))
+            
+            
             if not is_validation:
                 if save_images:
                     image = cv2.resize(np.transpose(original_image[0, :, :, :], (1, 2, 0)), dsize)
@@ -254,7 +221,7 @@ class End2End:
                     human_mask = human_mask[0, 0, :, :]
                     utils.plot_sample(sample_name[0], image, pred_seg, seg_mask, human_mask, save_folder, decision=prediction, plot_seg=plot_seg)
         
-        diff = torch.tensor(np.array(diff)).view(-1)
+        diff = torch.tensor(diff).view(-1)
         disagree = torch.tensor(predictions).view(-1)
         _, dff_order = diff.sort()
         _, dis_order = disagree.sort()
