@@ -228,7 +228,7 @@ class End2End2:
             losses.append((epoch_loss, epoch))
 
             self._log(
-                f"Epoch {epoch + 1}/{num_epochs} ==> avg_loss={epoch_loss:.5f}, remain_noisy={remain_noisy/2.0:.0f} in {end - start:.2f}s/epoch (fwd/bck in {time_acc:.2f}s/epoch)")
+                f"Epoch {epoch + 1}/{num_epochs} ==> avg_loss={epoch_loss:.5f}, remain_noisy={remain_noisy:.0f} in {end - start:.2f}s/epoch (fwd/bck in {time_acc:.2f}s/epoch)")
 
             if tensorboard_writer is not None:
                 tensorboard_writer.add_scalar("Loss/Train/segmentation", epoch_loss_seg, epoch)
