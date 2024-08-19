@@ -12,27 +12,34 @@ run_DEMO_EXPERIMENTS()
   GPUS=($@)
 
   
-  train_DAGM $SAVE_IMAGES DAGM $DAGM_PATH clean   $RESULTS_PATH 1000 150 0.001 2 True 1.0 0.50 True  False 0.00 "${GPUS[@]}"
-  train_DAGM $SAVE_IMAGES DAGM $DAGM_PATH noisy   $RESULTS_PATH 1000 150 0.001 2 True 1.0 0.50 False False 0.00 "${GPUS[@]}"
-  train_DAGM $SAVE_IMAGES DAGM $DAGM_PATH co_50   $RESULTS_PATH 1000 150 0.001 2 True 1.0 0.50 False True  0.50 "${GPUS[@]}"
+  #train_DAGM $SAVE_IMAGES DAGM $DAGM_PATH clean   $RESULTS_PATH 1000 150 0.001 2 True 1.0 0.50 True  False 0.00 False "${GPUS[@]}"
+  #train_DAGM $SAVE_IMAGES DAGM $DAGM_PATH noisy   $RESULTS_PATH 1000 150 0.001 2 True 1.0 0.50 False False 0.00 False "${GPUS[@]}"
+  #train_DAGM $SAVE_IMAGES DAGM $DAGM_PATH co_50   $RESULTS_PATH 1000 150 0.001 2 True 1.0 0.50 False True  0.50 False "${GPUS[@]}"
+  #train_DAGM $SAVE_IMAGES DAGM $DAGM_PATH gmm_50   $RESULTS_PATH 1000 150 0.001 2 True 1.0 0.50 False True  0.50 True "${GPUS[@]}"
   
-  train_single $SAVE_IMAGES PCB $PCB_PATH clean $RESULTS_PATH 335 150 0.001 1 True 1.0 0.50 True  False 0.00 ${GPUS[0]} &
-  train_single $SAVE_IMAGES PCB $PCB_PATH noisy $RESULTS_PATH 335 150 0.001 1 True 1.0 0.50 False False 0.00 ${GPUS[1]} &
-  train_single $SAVE_IMAGES PCB $PCB_PATH co_50 $RESULTS_PATH 335 150 0.001 1 True 1.0 0.50 False True  0.50 ${GPUS[2]} &
+  #train_single $SAVE_IMAGES PCB $PCB_PATH clean $RESULTS_PATH 335 150 0.001 1 True 1.0 0.50 True  False 0.00 False ${GPUS[0]} &
+  #train_single $SAVE_IMAGES PCB $PCB_PATH noisy $RESULTS_PATH 335 150 0.001 1 True 1.0 0.50 False False 0.00 False ${GPUS[1]} &
+  #train_single $SAVE_IMAGES PCB $PCB_PATH co_50 $RESULTS_PATH 335 150 0.001 1 True 1.0 0.50 False True  0.50 False ${GPUS[2]} &
+  train_single $SAVE_IMAGES PCB $PCB_PATH gmm_50 $RESULTS_PATH 335 150 0.001 1 True 1.0 0.50 False True  0.50 True ${GPUS[0]} &
   wait
-  
-  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH clean_40 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.40 True  False 0.00 ${GPUS[0]} &
-  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH noisy_40 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.40 False False 0.00 ${GPUS[1]} &
-  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH co_40_40 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.40 False True  0.40 ${GPUS[2]} &
+<<COMMENT
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH clean_40 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.40 True  False 0.00 False ${GPUS[0]} &
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH noisy_40 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.40 False False 0.00 False ${GPUS[1]} &
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH co_40_40 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.40 False True  0.40 False ${GPUS[2]} &
   wait
-  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH clean_50 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.50 True  False 0.00 ${GPUS[0]} &
-  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH noisy_50 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.50 False False 0.00 ${GPUS[1]} &
-  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH co_50_50 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.50 False True  0.50 ${GPUS[2]} &
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH clean_50 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.50 True  False 0.00 False ${GPUS[0]} &
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH noisy_50 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.50 False False 0.00 False ${GPUS[1]} &
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH co_50_50 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.50 False True  0.50 False ${GPUS[2]} &
   wait
-  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH clean_60 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.60 True  False 0.00 ${GPUS[0]} &
-  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH noisy_60 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.60 False False 0.00 ${GPUS[1]} &
-  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH co_60_60 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.60 False True  0.60 ${GPUS[2]} &
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH clean_60 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.60 True  False 0.00 False ${GPUS[0]} &
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH noisy_60 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.60 False False 0.00 False ${GPUS[1]} &
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH co_60_60 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.60 False True  0.60 False ${GPUS[2]} &
   wait
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH gmm_40_40 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.40 False True  0.40 True ${GPUS[0]} &
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH gmm_50_50 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.50 False True  0.50 True ${GPUS[1]} &
+  train_single $SAVE_IMAGES KSDD2 $KSDD2_PATH gmm_60_60 $RESULTS_PATH 246 150 0.001 1 True 1.0 0.60 False True  0.60 True ${GPUS[2]} &
+  wait
+COMMENT
 }
 
 # Space delimited list of GPU IDs which will be used for training

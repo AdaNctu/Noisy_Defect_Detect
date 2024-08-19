@@ -43,6 +43,7 @@ def parse_args():
     parser.add_argument('--CLEAN_TRAIN', type=str2bool, default=None, help="Use GT Label")
     parser.add_argument('--COTRAIN', type=str2bool, default=None, help="co-training")
     parser.add_argument('--DROP_RATE', type=float, default=None, help="drop rate")
+    parser.add_argument('--GMM_SINGLE', type=str2bool, default=None, help="GMM type")
 
     args = parser.parse_args()
 

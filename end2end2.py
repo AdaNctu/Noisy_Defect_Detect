@@ -16,6 +16,7 @@ from config import Config
 from torch.utils.tensorboard import SummaryWriter
 from add_noise import *
 from gmm import Gmm
+from gmm2 import Gmm2
 
 LVL_ERROR = 10
 LVL_INFO = 5
@@ -32,8 +33,12 @@ class End2End2:
         self.cfg: Config = cfg
         self.storage_path: str = os.path.join(self.cfg.RESULTS_PATH, self.cfg.DATASET)
         
-        self.gmm1 = Gmm()
-        self.gmm2 = Gmm()
+        if self.cfg.GMM_SINGLE:
+            self.gmm1 = Gmm2()
+            self.gmm2 = Gmm2()
+        else:
+            self.gmm1 = Gmm()
+            self.gmm2 = Gmm()
         
     def _log(self, message, lvl=LVL_INFO):
         n_msg = f"{self.run_name} {message}"

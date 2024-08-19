@@ -43,6 +43,7 @@ class Config:
     #Co-train
     COTRAIN=False
     DROP_RATE = 0.5
+    GMM_SINGLE = False
 
     def init_extra(self):
         if self.NUM_SEGMENTED is None:
@@ -90,6 +91,7 @@ class Config:
         if args.WEIGHTED_DEFECT is not None: self.WEIGHTED_DEFECT = args.WEIGHTED_DEFECT
         if args.COTRAIN is not None: self.COTRAIN = args.COTRAIN
         if args.DROP_RATE is not None: self.DROP_RATE = args.DROP_RATE
+        if args.GMM_SINGLE is not None: self.GMM_SINGLE = args.GMM_SINGLE
 
     def get_as_dict(self):
         params = {
@@ -119,6 +121,7 @@ class Config:
             "CLEAN_TRAIN": self.CLEAN_TRAIN,
             "COTRAIN": self.COTRAIN,
             "DROP_RATE": self.DROP_RATE,
+            "GMM_SINGLE": self.GMM_SINGLE,
         }
         return params
 
@@ -152,5 +155,6 @@ def load_from_dict(dictionary):
     cfg.CLEAN_TRAIN = dictionary.get("CLEAN_TRAIN", None)
     cfg.COTRAIN = dictionary.get("COTRAIN", None)
     cfg.DROP_RATE = dictionary.get("DROP_RATE", None)
+    cfg.GMM_SINGLE = dictionary.get("GMM_SINGLE", None)
 
     return cfg
