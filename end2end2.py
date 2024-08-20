@@ -97,7 +97,7 @@ class End2End2:
                 _, output_seg_mask = model(images_, seg_masks_)
                 gmm.add_output(output_seg_mask, seg_masks_, index)
         
-    def training_iteration(self, data, device, model_1, model_2, criterion_seg, optimizer, tensorboard_writer, iter_index, epoch, gmm, clear_index):
+    def training_iteration(self, data, device, model_1, criterion_seg, optimizer, tensorboard_writer, iter_index):
         images, seg_masks, seg_loss_masks, is_segmented, _, is_pos, train_masks, idx = data
 
         batch_size = self.cfg.BATCH_SIZE
@@ -202,20 +202,20 @@ class End2End2:
                         model_2.train()
                         model_1.eval()
                         result = self.training_iteration(
-                                                        data, device, model_2, model_1,
+                                                        data, device, model_2,
                                                         criterion_seg,
                                                         optimizer2,
                                                         tensorboard_writer, 
-                                                        (epoch * samples_per_epoch + iter_index), epoch, self.gmm1, clear_index)
+                                                        (epoch * samples_per_epoch + iter_index))
                     else:
                         model_1.train()
                         model_2.eval()
                         result = self.training_iteration(
-                                                        data, device, model_1, model_2,
+                                                        data, device, model_1,
                                                         criterion_seg,
                                                         optimizer1,
                                                         tensorboard_writer, 
-                                                        (epoch * samples_per_epoch + iter_index), epoch, self.gmm2, clear_index)
+                                                        (epoch * samples_per_epoch + iter_index))
                     
                                                     
                     curr_loss = result
