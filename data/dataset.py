@@ -35,7 +35,17 @@ class Dataset(torch.utils.data.Dataset):
             self.normalize = transforms.Normalize(mean=mean[self.cfg.FOLD-1], std=std[self.cfg.FOLD-1])
         else:
             self.normalize = None
-    
+    def get_ADL(self):
+        total_noise = 0
+        
+        for item in self.neg_samples:
+            total_noise += (item[1] != item[-2]).sum().item()
+        for item in self.pos_samples:
+            total_noise += (item[1] != item[-2]).sum().item()
+        
+        print("ADL", self.len, total_noise, item[1].shape)
+        return self.len, total_noise, item[1].shape
+        
     def set_with_index(self, with_index):
         self.with_index = with_index
     

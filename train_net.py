@@ -1,5 +1,6 @@
 from end2end import End2End
 from end2end2 import End2End2
+from end2end3 import End2End3
 import argparse
 from config import Config
 
@@ -44,6 +45,7 @@ def parse_args():
     parser.add_argument('--COTRAIN', type=str2bool, default=None, help="co-training")
     parser.add_argument('--DROP_RATE', type=float, default=None, help="drop rate")
     parser.add_argument('--GMM_SINGLE', type=str2bool, default=None, help="GMM type")
+    parser.add_argument('--ADL', type=str2bool, default=None, help="Use ADL")
 
     args = parser.parse_args()
 
@@ -59,6 +61,8 @@ if __name__ == '__main__':
     
     if configuration.COTRAIN:
         end2end = End2End2(cfg=configuration)
+    elif configuration.ADL:
+        end2end = End2End3(cfg=configuration)
     else:
         end2end = End2End(cfg=configuration)
     end2end.train()
