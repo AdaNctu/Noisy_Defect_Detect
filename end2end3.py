@@ -16,6 +16,7 @@ from config import Config
 from torch.utils.tensorboard import SummaryWriter
 from add_noise import *
 from ADL import ADL
+import math
 
 LVL_ERROR = 10
 LVL_INFO = 5
@@ -75,9 +76,9 @@ class End2End3:
     def training_ADL(self, data, device, model):
         images, seg_masks, seg_loss_masks, is_segmented, _, is_pos, train_masks, index = data
         batch_size = self.cfg.BATCH_SIZE
-        memory_fit = self.cfg.MEMORY_FIT  # Not supported yet for >1
+        memory_fit = self.cfg.MEMORY_FIT
 
-        num_subiters = int(batch_size / memory_fit)
+        num_subiters = math.ceil(batch_size / memory_fit)
         
         with torch.no_grad():
             _, output_seg_mask = model(images.to(device), seg_masks.to(device))
@@ -87,9 +88,9 @@ class End2End3:
         images, seg_masks, seg_loss_masks, is_segmented, _, is_pos, train_masks, index = data
 
         batch_size = self.cfg.BATCH_SIZE
-        memory_fit = self.cfg.MEMORY_FIT  # Not supported yet for >1
+        memory_fit = self.cfg.MEMORY_FIT
 
-        num_subiters = int(batch_size / memory_fit)
+        num_subiters = math.ceil(batch_size / memory_fit)
 
         optimizer.zero_grad()
 

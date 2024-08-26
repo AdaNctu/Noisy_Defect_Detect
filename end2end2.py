@@ -17,6 +17,7 @@ from torch.utils.tensorboard import SummaryWriter
 from add_noise import *
 from gmm import Gmm
 from gmm2 import Gmm2
+import math
 
 LVL_ERROR = 10
 LVL_INFO = 5
@@ -85,9 +86,9 @@ class End2End2:
         images, seg_masks, seg_loss_masks, is_segmented, _, is_pos, train_masks, index = data
 
         batch_size = self.cfg.BATCH_SIZE
-        memory_fit = self.cfg.MEMORY_FIT  # Not supported yet for >1
+        memory_fit = self.cfg.MEMORY_FIT
 
-        num_subiters = int(batch_size / memory_fit)
+        num_subiters = math.ceil(batch_size / memory_fit)
         
         for sub_iter in range(num_subiters):
             images_ = images[sub_iter * memory_fit:(sub_iter + 1) * memory_fit, :, :, :].to(device)
@@ -101,9 +102,9 @@ class End2End2:
         images, seg_masks, seg_loss_masks, is_segmented, _, is_pos, train_masks, idx = data
 
         batch_size = self.cfg.BATCH_SIZE
-        memory_fit = self.cfg.MEMORY_FIT  # Not supported yet for >1
+        memory_fit = self.cfg.MEMORY_FIT
 
-        num_subiters = int(batch_size / memory_fit)
+        num_subiters = math.ceil(batch_size / memory_fit)
 
         optimizer.zero_grad()
 

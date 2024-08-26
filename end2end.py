@@ -15,6 +15,7 @@ import cv2
 from config import Config
 from torch.utils.tensorboard import SummaryWriter
 from add_noise import *
+import math
 
 LVL_ERROR = 10
 LVL_INFO = 5
@@ -74,9 +75,9 @@ class End2End:
         images, seg_masks, seg_loss_masks, is_segmented, _, is_pos, train_masks, _ = data
 
         batch_size = self.cfg.BATCH_SIZE
-        memory_fit = self.cfg.MEMORY_FIT  # Not supported yet for >1
+        memory_fit = self.cfg.MEMORY_FIT
 
-        num_subiters = int(batch_size / memory_fit)
+        num_subiters = math.ceil(batch_size / memory_fit)
 
         optimizer.zero_grad()
 
