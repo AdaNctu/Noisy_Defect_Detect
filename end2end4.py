@@ -135,7 +135,7 @@ class End2End4:
             decision, output_seg_mask = model(images_, seg_masks_)
             
             if self.cfg.WEIGHTED_SEG_LOSS:
-                loss_seg = torch.mean(criterion_seg(output_seg_mask, train_masks) * seg_loss_masks_, dim=(1,2,3))
+                loss_seg = torch.mean(criterion_seg(output_seg_mask, train_masks_) * seg_loss_masks_, dim=(1,2,3))
                 loss_seg = torch.sum(loss_seg*loss_weight_)
             else:
                 print("Not supported yet")
