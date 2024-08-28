@@ -97,11 +97,10 @@ class End2End:
             
             decision, output_seg_mask = model(images_, seg_masks_)
             
-            train_masks_smooth = 0.99*train_masks_ + 0.01*(1.0-train_masks_)
             if self.cfg.WEIGHTED_SEG_LOSS:
-                loss_seg = torch.mean(criterion_seg(output_seg_mask, train_masks_smooth) * seg_loss_masks_)
+                loss_seg = torch.mean(criterion_seg(output_seg_mask, train_masks_) * seg_loss_masks_)
             else:
-                loss_seg = criterion_seg(output_seg_mask, train_masks_smooth)
+                loss_seg = criterion_seg(output_seg_mask, train_masks_)
             
             loss = loss_seg
             
