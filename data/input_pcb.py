@@ -25,6 +25,7 @@ class PCBDataset(Dataset):
 
     def read_contents(self):
         pos_samples, neg_samples = [], []
+        correct_samples = []
 
         data_points = read_split(self.cfg.NUM_SEGMENTED, self.kind)
         for part in data_points:
@@ -47,11 +48,15 @@ class PCBDataset(Dataset):
             
             if positive:
                 pos_samples.append((image, dirty_mask, seg_loss_mask, True, image_path, clean_mask_path, part, clean_mask, torch.ones(1)))
+                correct_samples.append((image, clean_mask, seg_loss_mask, True, image_path, clean_mask_path, part, clean_mask, torch.zeros(1)))
             else:
                 neg_samples.append((image, dirty_mask, seg_loss_mask, True, image_path, clean_mask_path, part, clean_mask, torch.zeros(1)))
         
         self.pos_samples = pos_samples
-        self.neg_samples = neg_samples
+        if self.kind == 'TEST':
+            self.neg_samples = neg_samples + correct_samples
+        else:
+            self.neg_samples = neg_samples
         print(self.kind, len(self.pos_samples), len(self.neg_samples))
         self.num_pos = len(self.pos_samples)
         self.num_neg = len(self.neg_samples)
