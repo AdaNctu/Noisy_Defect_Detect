@@ -54,5 +54,31 @@ class Gmm:
         self.disagree, order = torch.tensor(self.disagree).sort(descending=True)
         self.indexs = [self.indexs[i] for i in order]
     
+    def subset_sampling(self, num, drop_rate, subset_size):
+        total_drop = int(num*drop_rate)
+        #split to subsets
+        padding = (subset_size-1)-(num-1)%subset_size
+        if padding:
+            order = torch.cat([torch.randperm(num),torch.tensor([-1]*padding)])
+        else:
+            order = torch.randperm(num)
+        order = order.view(-1, subset_size)
+        order, _ = order.sort(descending=False, dim=1)
+        
+        #drop
+        num_subset = order.shape[0]
+        clear_idx = []
+        for i in range(num_subset):
+            drop_num = int(total_drop*(i+1)/num_subset)-int(total_drop*i/num_subset)
+            if i+1 == num_subset:
+                drop_num += padding
+            clear_idx += order[i][drop_num:].tolist()
+        
+        return clear_idx
+        
     def get_clear_index(self, drop_rate):
-        return self.indexs[int(drop_rate*len(self.disagree)):]
+        indexs = self.subset_sampling(len(self.indexs), drop_rate, 8)
+        
+        return [self.indexs[i] for i in indexs]
+        
+        #return self.indexs[int(drop_rate*len(self.disagree)):]
