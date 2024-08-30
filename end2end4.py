@@ -222,8 +222,8 @@ class End2End4:
                 tensorboard_writer.add_scalar("Accuracy/Train/", epoch_correct / samples_per_epoch, epoch)
 
             if self.cfg.VALIDATE and (epoch % validation_step == 0 or epoch == num_epochs - 1):
-                validation_aauc, validation_ap, validation_accuracy = self.eval_model(device, model, validation_set, None, False, True, False)
-                validation_data.append((validation_aauc, validation_ap, epoch))
+                validation_nauci, validation_ap, validation_accuracy = self.eval_model(device, model, validation_set, None, False, True, False)
+                validation_data.append((validation_nauci, validation_ap, epoch))
 
                 if validation_ap > max_validation:
                     max_validation = validation_ap
@@ -282,17 +282,17 @@ class End2End4:
         cheat = (diff[dff_order]*torch.arange(1,len(diff)+1)).sum()
         random = diff.sum()*(len(diff)+1)*0.5
         query = (diff[dis_order]*torch.arange(1,len(diff)+1)).sum()
-        AAUC = (query-random)/(cheat-random)
+        NAUCI = (query-random)/(cheat-random)
         
         if is_validation:
             metrics = utils.get_metrics(np.array(ground_truths), np.array(predictions))
             FP, FN, TP, TN = list(map(sum, [metrics["FP"], metrics["FN"], metrics["TP"], metrics["TN"]]))
-            self._log(f"VALIDATION || AAUC={AAUC:f}, AUC={metrics['AUC']:f}, and AP={metrics['AP']:f}, with best thr={metrics['best_thr']:f} "
+            self._log(f"VALIDATION || NAUCI={NAUCI:f}, AUC={metrics['AUC']:f}, and AP={metrics['AP']:f}, with best thr={metrics['best_thr']:f} "
                       f"at f-measure={metrics['best_f_measure']:.3f} and FP={FP:d}, FN={FN:d}, TOTAL SAMPLES={FP + FN + TP + TN:d}")
 
-            return AAUC, metrics["AP"], metrics["accuracy"]
+            return NAUCI, metrics["AP"], metrics["accuracy"]
         else:
-            utils.evaluate_metrics(AAUC, res, self.run_path, self.run_name)
+            utils.evaluate_metrics(NAUCI, res, self.run_path, self.run_name)
 
     def reload_model(self, model, load_final=False):
         if self.cfg.USE_BEST_MODEL:
@@ -322,10 +322,10 @@ class End2End4:
         plt.xlabel("Epochs")
         plt.legend()
         if self.cfg.VALIDATE:
-            aauc, v, ve = map(list, zip(*validation_data))
+            nauci, v, ve = map(list, zip(*validation_data))
             plt.twinx()
             plt.plot(ve, v, label="Validation AP", color="Green")
-            plt.plot(ve,aauc, label="Validation AAUC", color="Blue")
+            plt.plot(ve,nauci, label="Validation NAUCI", color="Blue")
             plt.ylim((0, 1))
         plt.legend()
         plt.savefig(os.path.join(self.run_path, "loss_val"), dpi=200)

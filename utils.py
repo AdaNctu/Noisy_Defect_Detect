@@ -77,7 +77,7 @@ def plot_sample(image_name, image, segmentation, label, h_label, save_dir, decis
         cv2.imwrite(f"{save_dir}/{out_prefix}_segmentation_{image_name}.png", jet_seg)
 
 
-def evaluate_metrics(AAUC, samples, results_path, run_name):
+def evaluate_metrics(NAUCI, samples, results_path, run_name):
     samples = np.array(samples)
 
     img_names = samples[:, 4]
@@ -85,6 +85,7 @@ def evaluate_metrics(AAUC, samples, results_path, run_name):
     labels = samples[:, 3].astype(np.float32)
 
     metrics = get_metrics(labels, predictions)
+    metrics['NAUCI'] = NAUCI
 
     df = pd.DataFrame(
         data={'prediction': predictions,
@@ -94,7 +95,7 @@ def evaluate_metrics(AAUC, samples, results_path, run_name):
     df.to_csv(os.path.join(results_path, 'results.csv'), index=False)
 
     print(
-        f'{run_name} EVAL AAUC={AAUC:f}, AUC={metrics["AUC"]:f}, and AP={metrics["AP"]:f}, w/ best thr={metrics["best_thr"]:f} at f-m={metrics["best_f_measure"]:.3f} and FP={sum(metrics["FP"]):d}, FN={sum(metrics["FN"]):d}')
+        f'{run_name} EVAL NAUCI={NAUCI:f}, AUC={metrics["AUC"]:f}, and AP={metrics["AP"]:f}, w/ best thr={metrics["best_thr"]:f} at f-m={metrics["best_f_measure"]:.3f} and FP={sum(metrics["FP"]):d}, FN={sum(metrics["FN"]):d}')
 
     with open(os.path.join(results_path, 'metrics.pkl'), 'wb') as f:
         pickle.dump(metrics, f)
