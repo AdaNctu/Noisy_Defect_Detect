@@ -44,8 +44,8 @@ class Config:
     COTRAIN=False
     DROP_RATE = 0.5
     GMM_SINGLE = False
-    #ADL
-    ADL=False
+    #ADL_PAL
+    ADL_PAL=0
 
     def init_extra(self):
         if self.NUM_SEGMENTED is None:
@@ -94,7 +94,7 @@ class Config:
         if args.COTRAIN is not None: self.COTRAIN = args.COTRAIN
         if args.DROP_RATE is not None: self.DROP_RATE = args.DROP_RATE
         if args.GMM_SINGLE is not None: self.GMM_SINGLE = args.GMM_SINGLE
-        if args.ADL is not None: self.ADL = args.ADL
+        if args.ADL_PAL is not None: self.ADL_PAL = args.ADL_PAL
 
     def get_as_dict(self):
         params = {
@@ -125,7 +125,7 @@ class Config:
             "COTRAIN": self.COTRAIN,
             "DROP_RATE": self.DROP_RATE,
             "GMM_SINGLE": self.GMM_SINGLE,
-            "ADL": self.ADL,
+            "ADL_PAL": self.ADL_PAL,
         }
         return params
 
@@ -160,6 +160,6 @@ def load_from_dict(dictionary):
     cfg.COTRAIN = dictionary.get("COTRAIN", None)
     cfg.DROP_RATE = dictionary.get("DROP_RATE", None)
     cfg.GMM_SINGLE = dictionary.get("GMM_SINGLE", None)
-    cfg.ADL = dictionary.get("ADL", None)
+    cfg.ADL_PAL = dictionary.get("ADL_PAL", None)
 
     return cfg
