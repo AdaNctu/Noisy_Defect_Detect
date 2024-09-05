@@ -1,10 +1,10 @@
-
+# Improving Industrial Defect Detection through Mislabeling Identification
 ## Requirements
 Our experiments were trained and tested on:
 + Python 3.8
 + PyTorch 2.3.0
-+ scikit-learn 0.23.2
-+ numpy 1.23.1
++ Scikit-learn 0.23.2
++ Numpy 1.23.1
 ## Datasets
 You will need to download the datasets yourself. For DAGM Dataset you will also need a Kaggle account.
 * DAGM available [here.](https://www.kaggle.com/mhskjelvareid/dagm-2007-competition-dataset-optical-inspection)
